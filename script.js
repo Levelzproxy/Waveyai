@@ -1876,7 +1876,7 @@
       el.messages.innerHTML = '';
       if (el.welcomeTitle) {
         const name = (state.settings.name || '').trim();
-        el.welcomeTitle.textContent = name ? 'Hey ' + name + ", I'm Wavey." : "Hey, I'm Wavey.";
+        el.welcomeTitle.textContent = name ? 'Hey ' + "it's me," + name + ", It's Wavey." : "Hey, it's me, It's Wavey.";
       }
     } else {
       el.messages.innerHTML = conv.messages.map(messageHtml).join('');
