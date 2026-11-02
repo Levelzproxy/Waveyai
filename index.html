@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="description" content="Wavey AI — a fast, private chat assistant that runs entirely in your browser.">
+<title>Wavey AI</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%233ddc97'/%3E%3Cstop offset='.55' stop-color='%234aa8ff'/%3E%3Cstop offset='1' stop-color='%239a7dff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='%230b0f14'/%3E%3Cpath d='M12 38c6-14 10 8 16-4s10 10 16-6' fill='none' stroke='url(%23g)' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── icon sprite ─────────────────────────────────────────────── -->
+<svg xmlns="http://www.w3.org/2000/svg" class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+  <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2.5"/></symbol>
+  <symbol id="i-clip" viewBox="0 0 24 24"><path d="M21 11.1 11.8 20.3a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.9l8.5-8.5"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v6M14 11v6"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M7 22V11l4-8a2.5 2.5 0 0 1 2.5 2.5V10h4.9a2 2 0 0 1 2 2.4l-1.3 7.6a2 2 0 0 1-2 1.9H7ZM7 11H3v11h4"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M17 2v11l-4 8a2.5 2.5 0 0 1-2.5-2.5V14H5.6a2 2 0 0 1-2-2.4l1.3-7.6a2 2 0 0 1 2-1.9H17ZM17 13h4V2h-4"/></symbol>
+  <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a9 9 0 0 1 0 14"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5M9 3h6l-1 6 3 3v2H7v-2l3-3-1-6Z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/><path d="M18.5 15.5 19 17l1.5.5-1.5.5-.5 1.5-.5-1.5L16.5 17l1.5-.5.5-1.5Z"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3"/></symbol>
+  <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 3v18"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="3.5"/><path d="m10.5 12.5 9.5-9.5M16 6l3 3M13 9l2 2"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v13"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18Z"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></symbol>
+</svg>
+
+<div class="app" id="app">
+  <div class="scrim" id="scrim" hidden></div>
+
+  <!-- ── sidebar ───────────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar" aria-label="Chat history">
+    <div class="sidebar-head">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 64 64"><path d="M10 39c7-17 12 9 19-5s12 12 19-7" fill="none" stroke="url(#brandGrad)" stroke-width="6" stroke-linecap="round"/><defs><linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3ddc97"/><stop offset=".55" stop-color="#4aa8ff"/><stop offset="1" stop-color="#9a7dff"/></linearGradient></defs></svg>
+        </span>
+        <span class="brand-text">Wavey<span class="brand-ai">AI</span></span>
+      </div>
+      <button class="icon-btn sidebar-close" id="sidebarClose" aria-label="Close sidebar" title="Close sidebar">
+        <svg class="ico"><use href="#i-x"/></svg>
+      </button>
+    </div>
+
+    <div class="sidebar-actions">
+      <button class="new-chat" id="newChatBtn" title="New chat (Ctrl+K)">
+        <svg class="ico"><use href="#i-plus"/></svg>
+        <span>New chat</span>
+        <kbd class="kbd">Ctrl K</kbd>
+      </button>
+      <label class="search-wrap" for="convSearch">
+        <svg class="ico" aria-hidden="true"><use href="#i-search"/></svg>
+        <input id="convSearch" type="search" placeholder="Search chats" autocomplete="off" spellcheck="false">
+        <button type="button" class="search-clear" id="searchClear" aria-label="Clear search" hidden>
+          <svg class="ico"><use href="#i-x"/></svg>
+        </button>
+      </label>
+    </div>
+
+    <div class="conv-scroll" id="convScroll">
+      <div class="conv-list" id="conversationList"></div>
+      <p class="conv-empty" id="convEmpty" hidden>No chats yet.<br><span>Start one below.</span></p>
+    </div>
+
+    <div class="sidebar-foot">
+      <button class="foot-btn" id="settingsBtn">
+        <svg class="ico"><use href="#i-settings"/></svg><span>Settings</span>
+      </button>
+      <button class="foot-btn foot-btn-icon" id="themeBtn" aria-label="Switch theme" title="Switch theme">
+        <svg class="ico theme-icon-moon"><use href="#i-moon"/></svg>
+        <svg class="ico theme-icon-sun"><use href="#i-sun"/></svg>
+      </button>
+      <button class="foot-btn profile" id="profileBtn" title="Edit your profile">
+        <span class="avatar avatar-user" id="profileAvatar">Y</span>
+        <span class="profile-name" id="profileName">You</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── main ──────────────────────────────────────────────────── -->
+  <main class="main" id="main">
+    <header class="topbar">
+      <button class="icon-btn menu-btn" id="menuBtn" aria-label="Open sidebar">
+        <svg class="ico"><use href="#i-panel"/></svg>
+      </button>
+      <div class="topbar-title">
+        <h1 id="chatTitle">New chat</h1>
+        <p id="chatMeta">Wavey AI</p>
+      </div>
+      <div class="topbar-actions">
+        <div class="dropdown">
+          <button class="model-btn" id="modelBtn" aria-haspopup="menu" aria-expanded="false">
+            <span class="engine-dot" id="engineDot"></span>
+            <span id="modelLabel">Wavey Local</span>
+            <svg class="ico"><use href="#i-chevron-down"/></svg>
+          </button>
+          <div class="menu menu-model" id="modelMenu" role="menu" hidden></div>
+        </div>
+        <button class="icon-btn" id="exportBtn" title="Export chat" aria-label="Export chat">
+          <svg class="ico"><use href="#i-download"/></svg>
+        </button>
+        <div class="dropdown">
+          <button class="icon-btn" id="moreBtn" title="More" aria-label="More actions" aria-haspopup="menu" aria-expanded="false">
+            <svg class="ico"><use href="#i-more"/></svg>
+          </button>
+          <div class="menu" id="moreMenu" role="menu" hidden>
+            <button class="menu-item" data-more="rename"><svg class="ico"><use href="#i-edit"/></svg>Rename chat</button>
+            <button class="menu-item" data-more="pin"><svg class="ico"><use href="#i-pin"/></svg><span id="pinLabel">Pin chat</span></button>
+            <button class="menu-item" data-more="clear"><svg class="ico"><use href="#i-refresh"/></svg>Clear messages</button>
+            <button class="menu-item" data-more="export-md"><svg class="ico"><use href="#i-file"/></svg>Export as Markdown</button>
+            <button class="menu-item" data-more="export-json"><svg class="ico"><use href="#i-download"/></svg>Export as JSON</button>
+            <div class="menu-sep"></div>
+            <button class="menu-item danger" data-more="delete"><svg class="ico"><use href="#i-trash"/></svg>Delete chat</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="chat-scroll" id="chatScroll">
+      <div class="chat-inner">
+        <!-- welcome -->
+        <section class="welcome" id="welcome">
+          <div class="welcome-glow" aria-hidden="true"></div>
+          <div class="welcome-mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64"><path d="M10 39c7-17 12 9 19-5s12 12 19-7" fill="none" stroke="url(#waveGrad)" stroke-width="6" stroke-linecap="round"/><defs><linearGradient id="waveGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3ddc97"/><stop offset=".55" stop-color="#4aa8ff"/><stop offset="1" stop-color="#9a7dff"/></linearGradient></defs></svg>
+          </div>
+          <h2 id="welcomeTitle">Hey, I'm Wavey.</h2>
+          <p class="welcome-sub" id="welcomeSub">Ask me anything — code, writing, ideas, math. Everything stays on this device.</p>
+
+          <div class="suggestions" id="suggestions">
+            <button class="suggestion" data-prompt="Explain how HTTPS works like I'm five, then give the technical version.">
+              <span class="suggestion-ico"><svg class="ico"><use href="#i-bolt"/></svg></span>
+              <span><strong>Explain something</strong><small>How HTTPS works, simply</small></span>
+            </button>
+            <button class="suggestion" data-prompt="Write a Python script that renames every file in a folder to lowercase, with a dry-run option.">
+              <span class="suggestion-ico"><svg class="ico"><use href="#i-sparkle"/></svg></span>
+              <span><strong>Write code</strong><small>A file-renaming script</small></span>
+            </button>
+            <button class="suggestion" data-prompt="Draft a short, friendly follow-up email to a client who hasn't replied in a week.">
+              <span class="suggestion-ico"><svg class="ico"><use href="#i-edit"/></svg></span>
+              <span><strong>Draft a message</strong><small>Client follow-up email</small></span>
+            </button>
+            <button class="suggestion" data-prompt="Plan a focused 3-day trip to Lisbon with a realistic budget, and keep the walking under 8km a day.">
+              <span class="suggestion-ico"><svg class="ico"><use href="#i-globe"/></svg></span>
+              <span><strong>Make a plan</strong><small>A 3-day Lisbon trip</small></span>
+            </button>
+          </div>
+
+          <div class="welcome-chips">
+            <span class="chip"><svg class="ico"><use href="#i-check"/></svg>Markdown &amp; code</span>
+            <span class="chip"><svg class="ico"><use href="#i-check"/></svg>Images &amp; files</span>
+            <span class="chip"><svg class="ico"><use href="#i-check"/></svg>Voice input</span>
+            <span class="chip"><svg class="ico"><use href="#i-check"/></svg>Saved locally</span>
+          </div>
+        </section>
+
+        <div class="messages" id="messages" aria-live="polite" aria-relevant="additions text"></div>
+      </div>
+      <button class="scroll-bottom" id="scrollBottomBtn" aria-label="Scroll to latest" hidden>
+        <svg class="ico"><use href="#i-arrow-down"/></svg>
+      </button>
+    </div>
+
+    <!-- composer -->
+    <div class="composer-area">
+      <form class="composer" id="composerForm" autocomplete="off">
+        <div class="attachment-strip" id="attachmentStrip" hidden></div>
+        <div class="composer-box">
+          <button type="button" class="icon-btn attach-btn" id="attachBtn" aria-label="Attach image or file" title="Attach image or file">
+            <svg class="ico"><use href="#i-clip"/></svg>
+          </button>
+          <input type="file" id="fileInput" hidden multiple accept="image/*,.txt,.md,.markdown,.js,.mjs,.jsx,.ts,.tsx,.json,.html,.css,.py,.rb,.go,.rs,.java,.c,.cpp,.h,.sh,.yml,.yaml,.sql,.csv,.log,.env.example">
+          <textarea id="promptInput" rows="1" placeholder="Message Wavey AI…" spellcheck="false" enterkeyhint="send" aria-label="Message"></textarea>
+          <button type="button" class="icon-btn mic-btn" id="micBtn" aria-label="Dictate" title="Dictate (speech to text)">
+            <svg class="ico"><use href="#i-mic"/></svg>
+          </button>
+          <button type="submit" class="send-btn" id="sendBtn" aria-label="Send message" title="Send">
+            <svg class="ico ico-send"><use href="#i-arrow-up"/></svg>
+            <svg class="ico ico-stop"><use href="#i-stop"/></svg>
+          </button>
+        </div>
+        <div class="composer-foot">
+          <span class="engine-pill" id="enginePill"><span class="dot"></span><span id="enginePillText">Wavey Local</span></span>
+          <span class="foot-hint" id="composerHint">Enter to send · Shift+Enter for a new line</span>
+          <span class="counter" id="charCount">0</span>
+        </div>
+      </form>
+      <p class="disclaimer">Wavey AI can make mistakes. Check important info.</p>
+    </div>
+  </main>
+</div>
+
+<!-- ── toasts ──────────────────────────────────────────────────── -->
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+<!-- ── settings ────────────────────────────────────────────────── -->
+<div class="modal" id="settingsModal" hidden>
+  <div class="modal-backdrop" data-close="settings"></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <header class="modal-head">
+      <h2 id="settingsTitle">Settings</h2>
+      <button class="icon-btn" data-close="settings" aria-label="Close settings"><svg class="ico"><use href="#i-x"/></svg></button>
+    </header>
+    <div class="tabs" id="settingsTabs" role="tablist">
+      <button class="tab is-active" data-tab="general" role="tab" aria-selected="true">General</button>
+      <button class="tab" data-tab="model" role="tab" aria-selected="false">Model</button>
+      <button class="tab" data-tab="data" role="tab" aria-selected="false">Data</button>
+      <button class="tab" data-tab="about" role="tab" aria-selected="false">About</button>
+    </div>
+    <div class="modal-body">
+      <section class="tab-panel is-active" data-panel="general">
+        <div class="field">
+          <label for="setName">Your name</label>
+          <input id="setName" maxlength="40" placeholder="You">
+        </div>
+        <div class="field">
+          <span class="label">Theme</span>
+          <div class="segmented" id="themeSeg" role="group" aria-label="Theme">
+            <button type="button" data-theme-val="system">System</button>
+            <button type="button" data-theme-val="light">Light</button>
+            <button type="button" data-theme-val="dark">Dark</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="setFont">Text size</label>
+          <select id="setFont">
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="setSystem">Custom instructions</label>
+          <textarea id="setSystem" rows="4" placeholder="e.g. Be concise. Answer in British English. I'm a beginner."></textarea>
+          <p class="hint">Added to every conversation as the system prompt. Saved in this browser only.</p>
+        </div>
+        <label class="switch-row">
+          <span><strong>Send with Enter</strong><small>Use Shift+Enter for a line break</small></span>
+          <input type="checkbox" class="switch" id="setEnter">
+        </label>
+        <label class="switch-row">
+          <span><strong>Stream responses</strong><small>Show words as they are generated</small></span>
+          <input type="checkbox" class="switch" id="setStream">
+        </label>
+        <label class="switch-row">
+          <span><strong>Show timestamps</strong><small>Display the time next to each reply</small></span>
+          <input type="checkbox" class="switch" id="setTimes">
+        </label>
+        <div class="field">
+          <label for="setTemp">Creativity <span class="badge" id="tempVal">0.7</span></label>
+          <input type="range" id="setTemp" min="0" max="1.5" step="0.1" value="0.7">
+          <p class="hint">Lower is focused and predictable, higher is more varied.</p>
+        </div>
+      </section>
+
+      <section class="tab-panel" data-panel="model">
+        <div class="callout" id="modelCallout">
+          <svg class="ico"><use href="#i-bolt"/></svg>
+          <div>
+            <strong>Works out of the box</strong>
+            <p id="modelCalloutText">Wavey Local runs entirely in this page — no account, no network, no setup. Connect a cloud model below if you want live GPT answers; the rest of the app is identical.</p>
+          </div>
+        </div>
+        <div class="field">
+          <label for="setProvider">Engine</label>
+          <select id="setProvider">
+            <option value="local">Wavey Local (built in)</option>
+            <option value="openai">OpenAI / compatible API</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="setBase">API base URL</label>
+          <input id="setBase" spellcheck="false" placeholder="https://api.openai.com/v1">
+          <p class="hint">Works with OpenAI, OpenRouter, Groq, Together, LM Studio, Ollama or any OpenAI-compatible endpoint.</p>
+        </div>
+        <div class="field">
+          <label for="setKey">API key</label>
+          <div class="input-row">
+            <input id="setKey" type="password" spellcheck="false" autocomplete="off" placeholder="sk-…">
+            <button type="button" class="btn btn-ghost" id="toggleKey">Show</button>
+            <button type="button" class="btn btn-ghost" id="clearKey">Clear</button>
+          </div>
+          <p class="hint">Stored in <code>localStorage</code> and sent straight to the endpoint above. It is never written into these files. Shared computers: clear it when you're done.</p>
+        </div>
+        <div class="field">
+          <label for="setModel">Default model</label>
+          <input id="setModel" spellcheck="false" list="modelList" placeholder="gpt-4o-mini">
+          <datalist id="modelList"></datalist>
+          <p class="hint">Any model id your endpoint supports, e.g. <code>gpt-5</code>, <code>gpt-4o</code>, <code>gpt-4o-mini</code>, <code>o4-mini</code>.</p>
+        </div>
+        <button type="button" class="btn btn-primary" id="testConn">Test connection</button>
+        <p class="hint test-result" id="connResult">Not tested yet.</p>
+      </section>
+
+      <section class="tab-panel" data-panel="data">
+        <div class="data-grid">
+          <button class="btn" id="exportAll"><svg class="ico"><use href="#i-download"/></svg>Export all chats (JSON)</button>
+          <button class="btn" id="exportChat"><svg class="ico"><use href="#i-file"/></svg>Export current chat (Markdown)</button>
+          <button class="btn" id="importBtn"><svg class="ico"><use href="#i-share"/></svg>Import chats</button>
+          <input type="file" id="importInput" accept="application/json,.json" hidden>
+          <button class="btn danger" id="clearAll"><svg class="ico"><use href="#i-trash"/></svg>Delete all chats</button>
+          <button class="btn" id="resetSettings"><svg class="ico"><use href="#i-refresh"/></svg>Reset settings</button>
+        </div>
+        <p class="hint">Chats, settings and your key live in this browser's localStorage. Nothing is uploaded unless you connect a cloud model and send a message.</p>
+        <div class="field">
+          <label>Storage used</label>
+          <div class="meter"><span id="storageBar"></span></div>
+          <p class="hint" id="storageText">—</p>
+        </div>
+      </section>
+
+      <section class="tab-panel" data-panel="about">
+        <div class="about-head">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64"><path d="M10 39c7-17 12 9 19-5s12 12 19-7" fill="none" stroke="url(#aboutGrad)" stroke-width="6" stroke-linecap="round"/><defs><linearGradient id="aboutGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3ddc97"/><stop offset=".55" stop-color="#4aa8ff"/><stop offset="1" stop-color="#9a7dff"/></linearGradient></defs></svg>
+          </span>
+          <div><strong>Wavey AI</strong><p class="hint">Version 1.0 · single-page edition</p></div>
+        </div>
+        <ul class="about-list">
+          <li>Streaming replies, markdown and syntax-highlighted code</li>
+          <li>Chat history, pinning, search, rename and export</li>
+          <li>Images and text files, voice dictation, read-aloud</li>
+          <li>Keyboard shortcuts, themes, custom instructions</li>
+          <li>Zero dependencies, works offline on the local engine</li>
+        </ul>
+        <button class="btn" id="aboutShortcuts"><svg class="ico"><use href="#i-key"/></svg>Keyboard shortcuts</button>
+      </section>
+    </div>
+    <footer class="modal-foot">
+      <span class="hint">Changes are saved as you go.</span>
+      <button class="btn btn-primary" data-close="settings">Done</button>
+    </footer>
+  </div>
+</div>
+
+<!-- ── shortcuts ───────────────────────────────────────────────── -->
+<div class="modal" id="shortcutsModal" hidden>
+  <div class="modal-backdrop" data-close="shortcuts"></div>
+  <div class="modal-card modal-sm" role="dialog" aria-modal="true" aria-labelledby="shortcutsTitle">
+    <header class="modal-head">
+      <h2 id="shortcutsTitle">Keyboard shortcuts</h2>
+      <button class="icon-btn" data-close="shortcuts" aria-label="Close"><svg class="ico"><use href="#i-x"/></svg></button>
+    </header>
+    <div class="modal-body">
+      <dl class="shortcuts">
+        <div><dt>Send message</dt><dd><kbd class="kbd">Enter</kbd></dd></div>
+        <div><dt>New line</dt><dd><kbd class="kbd">Shift</kbd><kbd class="kbd">Enter</kbd></dd></div>
+        <div><dt>New chat</dt><dd><kbd class="kbd">Ctrl</kbd><kbd class="kbd">K</kbd></dd></div>
+        <div><dt>Search chats</dt><dd><kbd class="kbd">Ctrl</kbd><kbd class="kbd">F</kbd></dd></div>
+        <div><dt>Toggle sidebar</dt><dd><kbd class="kbd">Ctrl</kbd><kbd class="kbd">B</kbd></dd></div>
+        <div><dt>Shortcuts</dt><dd><kbd class="kbd">Ctrl</kbd><kbd class="kbd">/</kbd></dd></div>
+        <div><dt>Stop / close</dt><dd><kbd class="kbd">Esc</kbd></dd></div>
+        <div><dt>Edit last message</dt><dd><kbd class="kbd">↑</kbd> in empty box</dd></div>
+      </dl>
+      <p class="hint">On macOS, use ⌘ instead of Ctrl.</p>
+    </div>
+    <footer class="modal-foot"><button class="btn btn-primary" data-close="shortcuts">Got it</button></footer>
+  </div>
+</div>
+
+<!-- ── confirm ─────────────────────────────────────────────────── -->
+<div class="modal" id="confirmModal" hidden>
+  <div class="modal-backdrop" data-close="confirm"></div>
+  <div class="modal-card modal-sm" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmBody">
+    <header class="modal-head">
+      <h2 id="confirmTitle">Are you sure?</h2>
+      <button class="icon-btn" data-close="confirm" aria-label="Cancel"><svg class="ico"><use href="#i-x"/></svg></button>
+    </header>
+    <div class="modal-body"><p id="confirmBody" class="confirm-text"></p></div>
+    <footer class="modal-foot">
+      <button class="btn" data-close="confirm" id="confirmCancel">Cancel</button>
+      <button class="btn btn-danger" id="confirmOk">Delete</button>
+    </footer>
+  </div>
+</div>
+
+<noscript><p style="padding:24px;font-family:sans-serif">Wavey AI needs JavaScript enabled.</p></noscript>
+<script src="script.js"></script>
+</body>
+</html>
