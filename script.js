@@ -149,6 +149,14 @@
     { id: 'o3', label: 'o3', note: 'Deep reasoning' }
   ];
 
+  const BOOST_URL = 'https://oai.aihorde.net/v1/chat/completions';
+  const BOOST_KEY = '0000000000';
+  const BOOST_MODELS = [
+    { id: 'Qwen/Qwen3.8-Flash-Next', timeout: 45000 },
+    { id: 'koboldcpp/Qwen3-14B', timeout: 45000 },
+    { id: 'GLM-5.3-Flash', timeout: 80000 }
+  ];
+
   const DEFAULTS = {
     name: '',
     theme: 'system',
@@ -158,7 +166,8 @@
     stream: true,
     showTimes: true,
     temperature: 0.7,
-    provider: 'local',
+    provider: 'boost',
+    boostMigrated: false,
     baseUrl: 'https://api.openai.com/v1',
     apiKey: '',
     model: 'gpt-4o-mini'
@@ -273,6 +282,10 @@
       }
       if (data && data.settings && typeof data.settings === 'object') {
         state.settings = Object.assign({}, DEFAULTS, data.settings);
+        if (!state.settings.boostMigrated) {
+          if (state.settings.provider !== 'openai' || !state.settings.apiKey) state.settings.provider = 'boost';
+          state.settings.boostMigrated = true;
+        }
       }
     } catch (e) {
       state.conversations = [];
@@ -1256,7 +1269,7 @@
       '',
       'Give me the specifics — language, audience, budget, deadline, whatever applies — and I will make this concrete instead of abstract.',
       '',
-      '*I am Wavey Local, the built-in engine: strongest on structure, code patterns, math, and writing templates. For open-ended factual questions, connect a model in Settings → Model and this same window becomes a full LLM.*'
+      '*I am Wavey Local, the built-in engine: strongest on structure, code patterns, math, and writing templates. For open-ended factual questions, switch to Wavey Boost in Settings → Model — free, no key — or connect your own model.*'
     ].join('\n');
   }
 
@@ -1327,6 +1340,7 @@
     }
 
     if (/(who|what) (are|r) you|your name|what model|are you (chatgpt|gpt|openai|claude)/.test(q)) {
+      if (providerMode() === 'boost') return 'I am **Wavey AI**. **Wavey Boost** is answering through a free community model on AI Horde — no account, no key. Pick **Wavey Local** in Settings for fully offline replies.';
       const cloud = state.settings.provider === 'openai' && state.settings.apiKey.trim();
       return cloud
         ? 'I am **Wavey AI**, currently talking to **' + state.settings.model + '** through the endpoint in Settings. The interface, history and shortcuts are mine; the words come from that model.'
@@ -1342,7 +1356,7 @@
         '- Voice dictation and read-aloud (browser support varies)',
         '- Math, dates, summaries, writing templates, plans, debugging checklists',
         '',
-        '**What needs a key:** open-ended factual questions and real reasoning, via any OpenAI-compatible endpoint. **Settings → Model** takes a base URL, key and model id — OpenRouter, Groq, Together, LM Studio and Ollama all work.',
+        '**Free cloud:** **Wavey Boost** answers open-ended questions with a real model through AI Horde — no account, no key. **Settings → Model** can also take a base URL and key for OpenAI, OpenRouter, Groq, Together, LM Studio or Ollama.',
         '',
         'Ask for a code snippet, a draft, a plan or a calculation and you will see the local engine work immediately.'
       ].join('\n');
@@ -1469,6 +1483,7 @@
 
   function providerMode() {
     if (state.settings.provider === 'openai') return hasKey() ? 'openai' : 'openai-nokey';
+    if (state.settings.provider === 'boost') return 'boost';
     return 'local';
   }
 
@@ -1531,7 +1546,7 @@
     if (!err) return { title: 'Something went wrong', message: 'Unknown error.' };
     if (err.name === 'AbortError') return null;
     if (err.message === 'NOKEY') {
-      return { title: 'No model connected', message: 'Wavey Local is ready to use. Add an API key in Settings → Model to send this request to GPT.' };
+      return { title: 'No model connected', message: 'Choose Wavey Boost in Settings → Model for free answers, or add your own API key.' };
     }
     if (err.title) {
       return { title: err.title, message: String(err.message || '') + (err.hint ? ' ' + err.hint : '') };
@@ -1614,6 +1629,124 @@
         if (delta && typeof delta.content === 'string' && delta.content) yield delta.content;
       }
     }
+  }
+
+  function boostMessages(conv) {
+    const system = (state.settings.systemPrompt || '').trim();
+    const out = [{
+      role: 'system',
+      content: (system ? system + '\n\n' : '') +
+        'You are Wavey AI, a helpful assistant inside a single-page chat app. Today is ' + new Date().toDateString() + '. Use markdown. Answer the question directly first, then explain. Be accurate, concrete and concise. Show the steps for math. For code, give complete runnable snippets in fenced blocks with language tags. If you are unsure, say so instead of inventing facts.'
+    }];
+    conv.messages
+      .filter((m) => (m.content || (m.attachments && m.attachments.length)))
+      .filter((m) => m.status !== 'error')
+      .slice(-20)
+      .forEach((m) => {
+        const parts = [];
+        if (m.content) parts.push(m.content);
+        (m.attachments || []).forEach((a) => {
+          if (a.kind === 'text' && a.text) parts.push('--- attached file: ' + a.name + ' ---\n' + a.text);
+          else if (a.kind === 'image') parts.push('[image attached: ' + a.name + ' — not visible to this text model]');
+        });
+        if (parts.length) out.push({ role: m.role, content: parts.join('\n\n') });
+      });
+    return out;
+  }
+
+  async function boostAttempt(model, messages, signal, maxTokens, timeoutMs) {
+    const controller = new AbortController();
+    let timedOut = false;
+    const onAbort = () => controller.abort();
+    if (signal) signal.addEventListener('abort', onAbort);
+    const timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, timeoutMs || 45000);
+    try {
+      const res = await fetch(BOOST_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + BOOST_KEY,
+          'X-Title': 'Wavey AI'
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: messages,
+          max_tokens: maxTokens,
+          temperature: Number(state.settings.temperature),
+          stream: false
+        }),
+        signal: controller.signal
+      });
+      const text = await res.text();
+      return { res: res, text: text };
+    } catch (err) {
+      if (signal && signal.aborted) throw abortError();
+      if (timedOut) {
+        const e = new Error('the free model took too long');
+        e.code = 'TIMEOUT';
+        throw e;
+      }
+      throw err;
+    } finally {
+      clearTimeout(timer);
+      if (signal) signal.removeEventListener('abort', onAbort);
+    }
+  }
+
+  function boostError(res, text) {
+    let detail = '';
+    try {
+      const parsed = JSON.parse(text);
+      detail = (parsed.error && parsed.error.message) || parsed.message || '';
+    } catch (e) {
+      detail = String(text || '').slice(0, 200);
+    }
+    const err = new Error(detail || ('Free model error ' + res.status));
+    err.status = res.status;
+    return err;
+  }
+
+  async function* streamBoost(conv, signal) {
+    const messages = boostMessages(conv);
+    let lastError = null;
+    for (let m = 0; m < BOOST_MODELS.length; m++) {
+      const candidate = BOOST_MODELS[m];
+      for (let pass = 0; pass < 2; pass++) {
+        const maxTokens = pass === 0 ? 1024 : 512;
+        try {
+          const result = await boostAttempt(candidate.id, messages, signal, maxTokens, candidate.timeout);
+          if (result.res.status === 403 && /kudos/i.test(result.text) && pass === 0) continue;
+          if (!result.res.ok) throw boostError(result.res, result.text);
+          const data = JSON.parse(result.text);
+          const message = data && data.choices && data.choices[0] && data.choices[0].message;
+          const content = message && typeof message.content === 'string' ? message.content.trim() : '';
+          if (!content) throw new Error('the free model returned an empty reply');
+          if (!state.settings.stream) {
+            yield content;
+            return;
+          }
+          const chunks = content.match(/[\s\S]{1,48}/g) || [content];
+          for (let i = 0; i < chunks.length; i++) {
+            if (signal.aborted) throw abortError();
+            yield chunks[i];
+            await sleep(6, signal);
+          }
+          return;
+        } catch (err) {
+          if (signal && signal.aborted) throw abortError();
+          lastError = err;
+          if (err && err.status === 403 && /kudos/i.test(err.message || '') && pass === 0) continue;
+          break;
+        }
+      }
+    }
+    yield '_(Wavey Boost could not reach a free model' +
+      (lastError && lastError.message ? ': ' + String(lastError.message).slice(0, 140) : '') +
+      '. Answering with the built-in engine.)_\n\n';
+    yield* streamLocal(conv, signal);
   }
 
   async function* streamLocal(conv, signal) {
@@ -1833,17 +1966,17 @@
   function updateTopbar() {
     const conv = getActive();
     const mode = providerMode();
-    const label = mode === 'local' ? 'Wavey Local' : (state.settings.model || 'Cloud model');
+    const label = mode === 'local' ? 'Wavey Local' : mode === 'boost' ? 'Wavey Boost' : (state.settings.model || 'Cloud model');
     if (el.chatTitle) el.chatTitle.textContent = conv ? conv.title : 'New chat';
     if (el.chatMeta) {
       const count = conv ? conv.messages.filter((m) => m.role === 'user').length : 0;
       el.chatMeta.textContent = (count ? count + (count === 1 ? ' message' : ' messages') + ' · ' : '') +
-        (mode === 'openai' ? label : mode === 'openai-nokey' ? 'Wavey Local · no key' : 'Built-in engine');
+        (mode === 'openai' ? label : mode === 'boost' ? 'Free cloud · no key' : mode === 'openai-nokey' ? 'Wavey Local · no key' : 'Built-in engine');
     }
     if (el.modelLabel) el.modelLabel.textContent = mode === 'local' ? 'Wavey Local' : label;
-    if (el.engineDot) el.engineDot.classList.toggle('is-cloud', mode === 'openai');
+    if (el.engineDot) el.engineDot.classList.toggle('is-cloud', mode === 'openai' || mode === 'boost');
     if (el.enginePill) {
-      el.enginePill.classList.toggle('is-cloud', mode === 'openai');
+      el.enginePill.classList.toggle('is-cloud', mode === 'openai' || mode === 'boost');
       el.enginePill.classList.toggle('is-warn', mode === 'openai-nokey');
     }
     if (el.enginePillText) {
@@ -1874,10 +2007,8 @@
     if (el.welcome) el.welcome.hidden = hasMessages;
     if (!hasMessages) {
       el.messages.innerHTML = '';
-      if (el.welcomeTitle) {
-        const name = (state.settings.name || '').trim();
-        el.welcomeTitle.textContent = name ? 'Hey ' + ", it's me," + name + ", It's Wavey." : "Hey , it's me , It's Wavey.";
-      }
+      if (el.welcomeTitle) el.welcomeTitle.textContent = "Hey , it's me , It's Wavey.";
+      if (el.welcomeSub) el.welcomeSub.textContent = 'Ask me anything (NOT verity) — Math, ideas, analyzing, etc.';
     } else {
       el.messages.innerHTML = conv.messages.map(messageHtml).join('');
     }
@@ -2028,7 +2159,7 @@
       content: '',
       ts: Date.now(),
       attachments: [],
-      model: mode === 'local' ? 'Wavey Local' : state.settings.model,
+      model: mode === 'local' ? 'Wavey Local' : mode === 'boost' ? 'Wavey Boost' : state.settings.model,
       engine: mode === 'local' ? 'local' : 'cloud',
       status: 'streaming',
       error: null,
@@ -2050,7 +2181,7 @@
 
     try {
       if (mode === 'openai-nokey') throw new Error('NOKEY');
-      const source = mode === 'local' ? streamLocal(conv, signal) : streamOpenAI(conv, signal);
+      const source = mode === 'local' ? streamLocal(conv, signal) : mode === 'boost' ? streamBoost(conv, signal) : streamOpenAI(conv, signal);
       for await (const chunk of source) {
         if (signal.aborted) throw abortError();
         msg.content += chunk;
@@ -2456,7 +2587,7 @@
     if (el.setTimes) el.setTimes.checked = !!s.showTimes;
     if (el.setTemp) el.setTemp.value = String(s.temperature);
     if (el.tempVal) el.tempVal.textContent = Number(s.temperature).toFixed(1);
-    if (el.setProvider) el.setProvider.value = s.provider === 'openai' ? 'openai' : 'local';
+    if (el.setProvider) el.setProvider.value = ['boost', 'openai', 'local'].includes(s.provider) ? s.provider : 'boost';
     if (el.setBase) el.setBase.value = s.baseUrl || '';
     if (el.setKey) el.setKey.value = s.apiKey || '';
     if (el.setModel) el.setModel.value = s.model || '';
@@ -2473,27 +2604,37 @@
   function updateModelCallout() {
     if (!el.modelCalloutText) return;
     const s = state.settings;
+    if (s.provider === 'boost') {
+      el.modelCalloutText.textContent = 'Wavey Boost sends each message to AI Horde, a free volunteer-run network, and returns an answer from a real language model. No account, no key. Switch to Wavey Local below for replies that never leave this device.';
+      return;
+    }
     if (s.provider === 'openai' && hasKey()) {
       el.modelCalloutText.textContent = 'Connected to ' + (s.model || 'a cloud model') + ' at ' + (s.baseUrl || 'the configured endpoint') +
         '. Messages go straight from this browser to that endpoint.';
     } else if (s.provider === 'openai') {
-      el.modelCalloutText.textContent = 'Paste an API key below to use a cloud model. Until then, Wavey Local keeps answering — nothing breaks, nothing is lost.';
+      el.modelCalloutText.textContent = 'Paste an API key below to use your own endpoint. Until then, switch to Wavey Boost for free cloud answers or Wavey Local for fully offline replies.';
     } else {
-      el.modelCalloutText.textContent = 'Wavey Local runs entirely in this page — no account, no network, no setup. Connect a cloud model below if you want live GPT answers; the rest of the app is identical.';
+      el.modelCalloutText.textContent = 'Wavey Local runs entirely in this page — no account, no network, no setup. Switch to Wavey Boost for free cloud answers, or connect your own model below.';
     }
   }
 
   function buildModelMenu() {
     if (!el.modelMenu) return;
     const mode = providerMode();
+    const boost = mode === 'boost';
     const cloud = mode === 'openai';
     const noKey = mode === 'openai-nokey';
-    let html = '<div class="menu-label">Built in</div>' +
+    let html = '<div class="menu-label">Free cloud</div>' +
+      '<button type="button" class="menu-item model-item" data-model="__boost" role="menuitemradio" aria-checked="' + boost + '">' +
+      '<span class="model-info"><strong>Wavey Boost</strong><small>Real model · no account · no key</small></span>' +
+      '<svg class="ico check"><use href="#i-check"/></svg></button>' +
+      '<div class="menu-sep"></div>' +
+      '<div class="menu-label">Built in</div>' +
       '<button type="button" class="menu-item model-item" data-model="__local" role="menuitemradio" aria-checked="' + (mode === 'local') + '">' +
       '<span class="model-info"><strong>Wavey Local</strong><small>Instant · offline · no key</small></span>' +
       '<svg class="ico check"><use href="#i-check"/></svg></button>' +
       '<div class="menu-sep"></div>' +
-      '<div class="menu-label">Cloud models' + (noKey ? ' · key needed' : '') + '</div>';
+      '<div class="menu-label">Your API' + (noKey ? ' · key needed' : '') + '</div>';
     MODELS.forEach((m) => {
       html += '<button type="button" class="menu-item model-item" data-model="' + m.id + '" role="menuitemradio" aria-checked="' + (cloud && state.settings.model === m.id) + '">' +
         '<span class="model-info"><strong>' + m.label + '</strong><small>' + m.note + '</small></span>' +
@@ -2506,6 +2647,11 @@
 
   async function testConnection() {
     if (!el.connResult) return;
+    if (state.settings.provider === 'boost') {
+      el.connResult.className = 'hint test-result';
+      el.connResult.textContent = 'Wavey Boost needs no key. Send any message to test the live free-model queue.';
+      return;
+    }
     const key = (el.setKey ? el.setKey.value : '').trim();
     const base = (el.setBase ? el.setBase.value : '').trim() || 'https://api.openai.com/v1';
     const model = (el.setModel ? el.setModel.value : '').trim() || 'gpt-4o-mini';
@@ -2870,6 +3016,16 @@
         openSettings('model');
         return;
       }
+      if (model === '__boost') {
+        state.settings.provider = 'boost';
+        closeMenus();
+        updateComposerState();
+        updateModelCallout();
+        saveSoon();
+        toast('Wavey Boost on — free, no key');
+        renderChat({ scroll: false });
+        return;
+      }
       if (model === '__local') {
         state.settings.provider = 'local';
         closeMenus();
@@ -2885,7 +3041,7 @@
         closeMenus();
         saveSoon();
         updateComposerState();
-        toast('Add a key in Settings → Model to use ' + model + '. Wavey Local is still active.', 'error');
+        toast('Add a key in Settings → Model to use ' + model + '. Wavey Boost is still active.', 'error');
         openSettings('model');
         return;
       }
@@ -2977,7 +3133,7 @@
     });
 
     el.setProvider.addEventListener('change', () => {
-      state.settings.provider = el.setProvider.value === 'openai' ? 'openai' : 'local';
+      state.settings.provider = ['boost', 'openai', 'local'].includes(el.setProvider.value) ? el.setProvider.value : 'boost';
       updateComposerState();
       updateModelCallout();
       renderChat({ scroll: false });
@@ -3154,7 +3310,7 @@
     el.promptInput.focus();
 
     if (!state.conversations.length) {
-      toast('Wavey Local is ready — no key needed.');
+      toast('Wavey Boost is ready — free, no key.');
     }
   }
 
