@@ -140,7 +140,7 @@
         <div class="dropdown">
           <button class="model-btn" id="modelBtn" aria-haspopup="menu" aria-expanded="false">
             <span class="engine-dot" id="engineDot"></span>
-            <span id="modelLabel">Wavey Local</span>
+            <span id="modelLabel">Wavey Boost</span>
             <svg class="ico"><use href="#i-chevron-down"/></svg>
           </button>
           <div class="menu menu-model" id="modelMenu" role="menu" hidden></div>
@@ -173,7 +173,7 @@
           <div class="welcome-mark" aria-hidden="true">
             <svg viewBox="0 0 64 64"><use href="#i-egg"/></svg>
           </div>
-          <h2 id="welcomeTitle">Hey,its me, It's Wavey.</h2>
+          <h2 id="welcomeTitle">Hey , it's me , It's Wavey.</h2>
           <p class="welcome-sub" id="welcomeSub">Ask me anything (NOT verity) — Math, ideas, analyzing, etc.</p>
 
           <div class="suggestions" id="suggestions">
@@ -229,7 +229,7 @@
           </button>
         </div>
         <div class="composer-foot">
-          <span class="engine-pill" id="enginePill"><span class="dot"></span><span id="enginePillText">Wavey Local</span></span>
+          <span class="engine-pill" id="enginePill"><span class="dot"></span><span id="enginePillText">Wavey Boost</span></span>
           <span class="foot-hint" id="composerHint">Enter to send · Shift+Enter for a new line</span>
           <span class="counter" id="charCount">0</span>
         </div>
@@ -307,14 +307,15 @@
           <svg class="ico"><use href="#i-bolt"/></svg>
           <div>
             <strong>Works out of the box</strong>
-            <p id="modelCalloutText">Wavey Local runs entirely in this page — no account, no network, no setup. Connect a cloud model below if you want live GPT answers; the rest of the app is identical.</p>
+            <p id="modelCalloutText">Wavey Boost uses a free community language model — no account, no key. Messages leave this device for that answer. Switch to Wavey Local below for fully offline replies.</p>
           </div>
         </div>
         <div class="field">
           <label for="setProvider">Engine</label>
           <select id="setProvider">
-            <option value="local">Wavey Local (built in)</option>
-            <option value="openai">OpenAI / compatible API</option>
+            <option value="boost">Wavey Boost (free, no key)</option>
+            <option value="local">Wavey Local (offline)</option>
+            <option value="openai">Custom API (your key)</option>
           </select>
         </div>
         <div class="field">
@@ -350,7 +351,7 @@
           <button class="btn danger" id="clearAll"><svg class="ico"><use href="#i-trash"/></svg>Delete all chats</button>
           <button class="btn" id="resetSettings"><svg class="ico"><use href="#i-refresh"/></svg>Reset settings</button>
         </div>
-        <p class="hint">Chats, settings and your key live in this browser's localStorage. Nothing is uploaded unless you connect a cloud model and send a message.</p>
+        <p class="hint">Chats, settings and your key live in this browser's localStorage. Wavey Local uploads nothing; Wavey Boost sends messages to a free community model. Your API key stays in this browser.</p>
         <div class="field">
           <label>Storage used</label>
           <div class="meter"><span id="storageBar"></span></div>
@@ -370,7 +371,7 @@
           <li>Chat history, pinning, search, rename and export</li>
           <li>Images and text files, voice dictation, read-aloud</li>
           <li>Keyboard shortcuts, themes, custom instructions</li>
-          <li>Zero dependencies, works offline on the local engine</li>
+          <li>Free cloud boost with no account, plus a fully offline local engine</li>
         </ul>
         <button class="btn" id="aboutShortcuts"><svg class="ico"><use href="#i-key"/></svg>Keyboard shortcuts</button>
       </section>
